@@ -10,6 +10,12 @@ namespace ChillDisplays
 {
     public partial class Form1 : Form
     {
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            if (WindowState == FormWindowState.Minimized)
+                Hide();
+        }
         public bool toggled = true;
         public bool insights_mode = false;
         public bool editor_mode = false;
@@ -53,6 +59,9 @@ namespace ChillDisplays
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOACTIVATE = 0x0010;
         private const uint SWP_SHOWWINDOW = 0x0040;
+
+        private NotifyIcon trayIcon;
+        private ContextMenuStrip trayMenu;
 
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
@@ -101,7 +110,8 @@ namespace ChillDisplays
             SetMonitorBounds();
             PopulateMonitorList();
             ApplyEditorMode();
-
+            if (IsPrimaryForm)
+                InitializeTrayIcon();
             if (Visible)
                 EnsureCoverOnTop();
         }
@@ -902,6 +912,9 @@ namespace ChillDisplays
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            if (IsPrimaryForm)
+                trayIcon?.Dispose();
+            base.OnFormClosed(e);
             if (activeEditor == this)
                 activeEditor = null;
 
@@ -914,5 +927,37 @@ namespace ChillDisplays
 
             base.OnFormClosed(e);
         }
+        private void InitializeTrayIcon()
+        {
+            trayMenu = new ContextMenuStrip();
+            trayMenu.Items.Add("Exit", null, (s, e) => Application.Exit());
+
+            trayIcon = new NotifyIcon
+            {
+                Text = "ChillDisplays",
+                Icon = SystemIcons.Application, // Replace with your icon if desired
+                ContextMenuStrip = trayMenu,
+                Visible = true
+            };
+
+            trayIcon.DoubleClick += (s, e) => ShowMainWindow();
+            trayIcon.BalloonTipTitle = "ChillDisplays";
+            trayIcon.BalloonTipText = "Application is running in the background.";
+            trayIcon.ShowBalloonTip(2000);
+        }
+        private void ShowMainWindow()
+        {
+            if (WindowState == FormWindowState.Minimized)
+                WindowState = FormWindowState.Normal;
+            Show();
+            BringToFront();
+        }
+
+        private void HideMainWindow()
+        {
+            Hide();
+        }
+
+
     }
 }
