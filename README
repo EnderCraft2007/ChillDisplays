@@ -1,1 +1,2 @@
 ChillDisplays is a portable .NET Framework 4.7.2 Windows Forms application for managing multi-monitor overlays and backgrounds. It provides per-monitor control, a system tray interface, and a simple editor for customizing display backgrounds. No installation required—just run the executable on any compatible Windows system.
+MIT License
